@@ -2,5 +2,93 @@
 
 {% block content %}
   <h1>Queue</h1>
-  <p>Placeholder for flagged threads.</p>
+  <section>
+    <h2>Flagged Threads</h2>
+    {% if threads and threads|length > 0 %}
+      <ul>
+        {% for thread in threads %}
+          <li>
+            <a href="{{ url_for('main.queue_detail', thread_pk=thread.thread_pk) }}">
+              {{ thread.title or "(untitled)" }}
+            </a>
+            {% if thread.subreddit %}
+              — r/{{ thread.subreddit }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No flagged threads yet.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Thread Detail</h2>
+    {% if selected %}
+      <article>
+        <h3>{{ selected.thread.title or "(untitled)" }}</h3>
+        <p>
+          {{ selected.thread.source }}
+          {% if selected.thread.subreddit %}
+            • r/{{ selected.thread.subreddit }}
+          {% endif %}
+          {% if selected.thread.created_at_utc %}
+            • {{ selected.thread.created_at_utc }}
+          {% endif %}
+        </p>
+        {% if selected.thread.url %}
+          <p>
+            <a href="{{ selected.thread.url }}">Open original thread</a>
+          </p>
+        {% endif %}
+        {% if selected.thread.body %}
+          <pre>{{ selected.thread.body }}</pre>
+        {% endif %}
+      </article>
+
+      <section>
+        <h3>Comments</h3>
+        {% if selected.comments and selected.comments|length > 0 %}
+          <ul>
+            {% for comment in selected.comments %}
+              <li>
+                {% if comment.author %}
+                  <strong>{{ comment.author }}</strong>:
+                {% endif %}
+                <span>{{ comment.body }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No comments yet.</p>
+        {% endif %}
+      </section>
+
+      <section>
+        <h3>Latest Draft</h3>
+        {% if selected.latest_draft %}
+          <pre>{{ selected.latest_draft.draft_text }}</pre>
+        {% else %}
+          <p>No draft response yet.</p>
+        {% endif %}
+      </section>
+
+      {% if selected.rule_hits and selected.rule_hits|length > 0 %}
+        <section>
+          <h3>Recent Rule Hits</h3>
+          <ul>
+            {% for hit in selected.rule_hits %}
+              <li>
+                {{ hit.matched_term }} ({{ hit.match_context }}) — {{ hit.created_at_utc }}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    {% elif not_found %}
+      <p>Thread not found.</p>
+    {% else %}
+      <p>Select a thread to review.</p>
+    {% endif %}
+  </section>
 {% endblock %}

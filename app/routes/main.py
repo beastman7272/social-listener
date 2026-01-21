@@ -1,16 +1,33 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, abort, render_template
 
 bp = Blueprint("main", __name__)
 
 
 @bp.route("/")
 def index():
-    return render_template("queue.html")
+    return queue()
 
 
 @bp.route("/queue")
 def queue():
-    return render_template("queue.html")
+    from app.repo.threads import list_flagged_threads
+
+    threads = list_flagged_threads()
+    return render_template("queue.html", threads=threads, selected=None)
+
+
+@bp.route("/queue/<int:thread_pk>")
+def queue_detail(thread_pk):
+    from app.repo.threads import get_thread_detail, list_flagged_threads
+
+    threads = list_flagged_threads()
+    detail = get_thread_detail(thread_pk)
+    return render_template(
+        "queue.html",
+        threads=threads,
+        selected=detail,
+        not_found=detail is None,
+    )
 
 
 @bp.route("/threads")
