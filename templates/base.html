@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Social Listener</title>
+  </head>
+  <body>
+    <nav>
+      <a href="{{ url_for('main.queue') }}">Queue</a>
+      |
+      <a href="{{ url_for('main.threads') }}">All Threads</a>
+      |
+      <a href="{{ url_for('main.config') }}">Rules/Config</a>
+      |
+      <a href="{{ url_for('main.runs') }}">Runs/Logs</a>
+    </nav>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
