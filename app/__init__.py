@@ -16,6 +16,10 @@ def create_app():
     )
 
     os.makedirs(app.instance_path, exist_ok=True)
+    from .repo.migrate import init_db_if_missing
+
+    if not os.path.exists(app.config["DATABASE"]):
+        init_db_if_missing(app.config["DATABASE"])
 
     from .routes import bp as routes_bp
 
