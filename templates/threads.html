@@ -10,6 +10,15 @@
           {% if thread.subreddit %}
             — r/{{ thread.subreddit }}
           {% endif %}
+          {% if thread.watching is not none %}
+            — watching: {{ "yes" if thread.watching else "no" }}
+          {% endif %}
+          {% if thread.in_area %}
+            — in_area: {{ thread.in_area }}
+          {% endif %}
+          {% if thread.last_rule_check_at_utc %}
+            — last_rule_check: {{ thread.last_rule_check_at_utc }}
+          {% endif %}
         </li>
       {% endfor %}
     </ul>

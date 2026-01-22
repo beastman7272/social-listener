@@ -18,3 +18,39 @@ def parse_config_json(raw_value):
         return json.loads(raw_value)
     except Exception:
         return None
+
+
+def get_config_list(conn, key, default=None):
+    if default is None:
+        default = []
+    raw_value = get_config_value(conn, key)
+    parsed = parse_config_json(raw_value)
+    if isinstance(parsed, list):
+        return parsed
+    return default
+
+
+def get_config_bool(conn, key, default=False):
+    raw_value = get_config_value(conn, key)
+    parsed = parse_config_json(raw_value)
+    if isinstance(parsed, bool):
+        return parsed
+    return default
+
+
+def get_config_int(conn, key, default=0):
+    raw_value = get_config_value(conn, key)
+    parsed = parse_config_json(raw_value)
+    if isinstance(parsed, int):
+        return parsed
+    return default
+
+
+def get_config_dict(conn, key, default=None):
+    if default is None:
+        default = {}
+    raw_value = get_config_value(conn, key)
+    parsed = parse_config_json(raw_value)
+    if isinstance(parsed, dict):
+        return parsed
+    return default

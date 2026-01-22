@@ -35,8 +35,13 @@ def list_recent_threads(limit=50):
     try:
         rows = conn.execute(
             """
-            SELECT *
-            FROM threads
+            SELECT
+                t.*,
+                ts.watching,
+                ts.in_area,
+                ts.last_rule_check_at_utc
+            FROM threads AS t
+            LEFT JOIN thread_state AS ts ON ts.thread_pk = t.thread_pk
             ORDER BY COALESCE(last_content_at_utc, created_at_utc) DESC
             LIMIT ?
             """,
@@ -45,6 +50,30 @@ def list_recent_threads(limit=50):
         return rows
     finally:
         conn.close()
+
+
+def list_comments_for_thread(conn, thread_pk):
+    return conn.execute(
+        """
+        SELECT *
+        FROM comments
+        WHERE thread_pk = ?
+        ORDER BY created_at_utc ASC
+        """,
+        (thread_pk,),
+    ).fetchall()
+
+
+def list_comments_since(conn, thread_pk, since_utc):
+    return conn.execute(
+        """
+        SELECT *
+        FROM comments
+        WHERE thread_pk = ? AND created_at_utc > ?
+        ORDER BY created_at_utc ASC
+        """,
+        (thread_pk, since_utc),
+    ).fetchall()
 
 
 def get_thread_detail(thread_pk):
