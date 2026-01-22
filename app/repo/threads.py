@@ -76,6 +76,42 @@ def list_comments_since(conn, thread_pk, since_utc):
     ).fetchall()
 
 
+def get_comment_pk_by_source_id(conn, thread_pk, source_comment_id):
+    row = conn.execute(
+        """
+        SELECT comment_pk
+        FROM comments
+        WHERE thread_pk = ? AND source_comment_id = ?
+        """,
+        (thread_pk, source_comment_id),
+    ).fetchone()
+    return row["comment_pk"] if row else None
+
+
+def list_rule_hits_for_run(conn, thread_pk, run_id):
+    return conn.execute(
+        """
+        SELECT *
+        FROM rule_hits
+        WHERE thread_pk = ? AND run_id = ?
+        ORDER BY created_at_utc DESC
+        """,
+        (thread_pk, run_id),
+    ).fetchall()
+
+
+def get_comment_source_id(conn, comment_pk):
+    row = conn.execute(
+        """
+        SELECT source_comment_id
+        FROM comments
+        WHERE comment_pk = ?
+        """,
+        (comment_pk,),
+    ).fetchone()
+    return row["source_comment_id"] if row else None
+
+
 def get_thread_detail(thread_pk):
     conn = connect()
     try:
@@ -112,6 +148,27 @@ def get_thread_detail(thread_pk):
             (thread_pk,),
         ).fetchone()
 
+        latest_genai_eval = conn.execute(
+            """
+            SELECT *
+            FROM genai_evals
+            WHERE thread_pk = ?
+            ORDER BY created_at_utc DESC
+            LIMIT 1
+            """,
+            (thread_pk,),
+        ).fetchone()
+
+        detections = conn.execute(
+            """
+            SELECT *
+            FROM detections
+            WHERE thread_pk = ?
+            ORDER BY created_at_utc DESC
+            """,
+            (thread_pk,),
+        ).fetchall()
+
         rule_hits = conn.execute(
             """
             SELECT *
@@ -127,6 +184,8 @@ def get_thread_detail(thread_pk):
             "thread_state": thread_state,
             "comments": comments,
             "latest_draft": latest_draft,
+            "latest_genai_eval": latest_genai_eval,
+            "detections": detections,
             "rule_hits": rule_hits,
         }
     finally:

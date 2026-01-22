@@ -67,11 +67,38 @@
       <section>
         <h3>Latest Draft</h3>
         {% if selected.latest_draft %}
-          <pre>{{ selected.latest_draft.draft_text }}</pre>
+          <textarea id="draft-text" rows="8" cols="80">{{ selected.latest_draft.draft_text }}</textarea>
+          <div>
+            <button type="button" id="copy-draft">Copy</button>
+          </div>
         {% else %}
           <p>No draft response yet.</p>
         {% endif %}
       </section>
+
+      <section>
+        <h3>GenAI Notes</h3>
+        {% if selected.latest_genai_eval %}
+          {% if selected.latest_genai_eval.short_reason %}
+            <p>{{ selected.latest_genai_eval.short_reason }}</p>
+          {% else %}
+            <p>No short reason provided.</p>
+          {% endif %}
+        {% else %}
+          <p>No GenAI evaluation yet.</p>
+        {% endif %}
+      </section>
+
+      {% if selected.detections and selected.detections|length > 0 %}
+        <section>
+          <h3>Detections</h3>
+          <ul>
+            {% for detection in selected.detections %}
+              <li>{{ detection.detection_type }} — {{ detection.evidence_text }}</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
 
       {% if selected.rule_hits and selected.rule_hits|length > 0 %}
         <section>
@@ -91,4 +118,15 @@
       <p>Select a thread to review.</p>
     {% endif %}
   </section>
+  <script>
+    const copyButton = document.getElementById("copy-draft");
+    if (copyButton) {
+      copyButton.addEventListener("click", () => {
+        const textArea = document.getElementById("draft-text");
+        if (textArea) {
+          navigator.clipboard.writeText(textArea.value);
+        }
+      });
+    }
+  </script>
 {% endblock %}

@@ -15,4 +15,5 @@ def load_env_config():
         "REDDIT_USER_AGENT": os.getenv("REDDIT_USER_AGENT"),
         "REDDIT_USERNAME": os.getenv("REDDIT_USERNAME"),
         "REDDIT_PASSWORD": os.getenv("REDDIT_PASSWORD"),
+        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
     }

@@ -22,6 +22,7 @@ Required for ingestion:
 - `REDDIT_CLIENT_ID`
 - `REDDIT_CLIENT_SECRET`
 - `REDDIT_USER_AGENT`
+ - `OPENAI_API_KEY` (required for GenAI stage)
 
 Optional for now:
 
