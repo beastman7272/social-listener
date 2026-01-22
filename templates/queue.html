@@ -14,6 +14,9 @@
             {% if thread.subreddit %}
               — r/{{ thread.subreddit }}
             {% endif %}
+            {% if thread.latest_draft_text %}
+              <div>{{ thread.latest_draft_text|truncate(160, True) }}</div>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
@@ -66,12 +69,14 @@
 
       <section>
         <h3>Latest Draft</h3>
-        {% if selected.latest_draft %}
-          <textarea id="draft-text" rows="8" cols="80">{{ selected.latest_draft.draft_text }}</textarea>
+        <form method="post" action="{{ url_for('main.save_draft', thread_pk=selected.thread.thread_pk) }}">
+          <textarea id="draft-text" name="draft_text" rows="8" cols="80">{{ selected.latest_draft.draft_text if selected.latest_draft else "" }}</textarea>
           <div>
+            <button type="submit">Save</button>
             <button type="button" id="copy-draft">Copy</button>
           </div>
-        {% else %}
+        </form>
+        {% if not selected.latest_draft %}
           <p>No draft response yet.</p>
         {% endif %}
       </section>

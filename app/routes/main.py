@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, request, url_for
 
 bp = Blueprint("main", __name__)
 
@@ -28,6 +28,15 @@ def queue_detail(thread_pk):
         selected=detail,
         not_found=detail is None,
     )
+
+
+@bp.route("/queue/<int:thread_pk>/draft", methods=["POST"])
+def save_draft(thread_pk):
+    from app.repo.drafts import save_edited_draft
+
+    draft_text = request.form.get("draft_text", "")
+    save_edited_draft(thread_pk, draft_text)
+    return redirect(url_for("main.queue_detail", thread_pk=thread_pk))
 
 
 @bp.route("/threads")

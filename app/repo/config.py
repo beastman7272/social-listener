@@ -54,3 +54,17 @@ def get_config_dict(conn, key, default=None):
     if isinstance(parsed, dict):
         return parsed
     return default
+
+
+def upsert_config_value(conn, key, value):
+    payload = json.dumps(value)
+    conn.execute(
+        """
+        INSERT INTO config (config_key, config_value, updated_at_utc)
+        VALUES (?, ?, strftime('%s','now'))
+        ON CONFLICT(config_key) DO UPDATE SET
+            config_value = excluded.config_value,
+            updated_at_utc = excluded.updated_at_utc
+        """,
+        (key, payload),
+    )

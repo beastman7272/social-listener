@@ -454,19 +454,63 @@ def _run_genai_for_threads(
 
 def main():
     config = load_env_config()
-    missing = _validate_reddit_config(config)
-    if missing:
-        print(
-            "Missing required Reddit credentials: "
-            + ", ".join(missing)
-            + ". Set them in .env or environment variables."
-        )
-        return 1
-
     init_db_if_missing()
     conn = connect()
     run_id = str(uuid.uuid4())
     started_at = int(time.time())
+    error_messages = []
+
+    conn.execute(
+        """
+        INSERT INTO runs (
+            run_id,
+            started_at_utc,
+            status,
+            source,
+            threads_fetched,
+            comments_fetched,
+            threads_new,
+            threads_updated,
+            rule_hits,
+            genai_calls,
+            threads_flagged
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            run_id,
+            started_at,
+            "running",
+            "reddit",
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ),
+    )
+    conn.commit()
+
+    missing = _validate_reddit_config(config)
+    if missing:
+        error_messages.append(
+            "Missing Reddit credentials: " + ", ".join(missing) + "."
+        )
+        conn.execute(
+            """
+            UPDATE runs
+            SET ended_at_utc = ?,
+                status = ?,
+                error_summary = ?
+            WHERE run_id = ?
+            """,
+            (int(time.time()), "partial", " ".join(error_messages), run_id),
+        )
+        conn.commit()
+        print(" ".join(error_messages) + " Skipping ingestion.")
+        conn.close()
+        return 0
 
     try:
         from collectors.reddit_client import build_reddit_client
@@ -475,38 +519,6 @@ def main():
         rules_config = _get_rule_config(conn)
         genai_config = _get_genai_config(conn)
         active_window_days = rules_config["active_window_days"]
-
-        conn.execute(
-            """
-            INSERT INTO runs (
-                run_id,
-                started_at_utc,
-                status,
-                source,
-                threads_fetched,
-                comments_fetched,
-                threads_new,
-                threads_updated,
-                rule_hits,
-                genai_calls,
-                threads_flagged
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                run_id,
-                started_at,
-                "running",
-                "reddit",
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ),
-        )
-        conn.commit()
 
         reddit = build_reddit_client(config)
         submissions = fetch_threads(reddit, subreddits, limit=25)
@@ -558,9 +570,7 @@ def main():
         genai_calls = 0
         threads_flagged = 0
         if not config.get("OPENAI_API_KEY"):
-            print(
-                "Missing OPENAI_API_KEY. Skipping GenAI stage for this run."
-            )
+            error_messages.append("Missing OPENAI_API_KEY; GenAI skipped.")
         else:
             genai_calls, threads_flagged = _run_genai_for_threads(
                 conn,
@@ -572,6 +582,7 @@ def main():
                 rule_results,
             )
 
+        status = "partial" if error_messages else "success"
         conn.execute(
             """
             UPDATE runs
@@ -588,7 +599,7 @@ def main():
             """,
             (
                 int(time.time()),
-                "partial" if not config.get("OPENAI_API_KEY") else "success",
+                status,
                 threads_fetched,
                 comments_fetched,
                 threads_new,
@@ -599,6 +610,15 @@ def main():
                 run_id,
             ),
         )
+        if error_messages:
+            conn.execute(
+                """
+                UPDATE runs
+                SET error_summary = ?
+                WHERE run_id = ?
+                """,
+                (" ".join(error_messages), run_id),
+            )
         conn.commit()
     except Exception as exc:
         conn.execute(

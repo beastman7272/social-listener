@@ -16,9 +16,19 @@ def list_flagged_threads(limit=50, offset=0):
                 ts.flagged,
                 ts.flagged_at_utc,
                 ts.dismissed,
-                ts.snoozed_until_utc
+                ts.snoozed_until_utc,
+                dr.draft_text AS latest_draft_text,
+                dr.status AS latest_draft_status
             FROM threads AS t
             JOIN thread_state AS ts ON ts.thread_pk = t.thread_pk
+            LEFT JOIN draft_responses AS dr
+                ON dr.draft_pk = (
+                    SELECT draft_pk
+                    FROM draft_responses
+                    WHERE thread_pk = t.thread_pk
+                    ORDER BY updated_at_utc DESC, created_at_utc DESC
+                    LIMIT 1
+                )
             WHERE ts.flagged = 1 AND (ts.dismissed IS NULL OR ts.dismissed = 0)
             ORDER BY COALESCE(ts.flagged_at_utc, t.last_content_at_utc, t.created_at_utc) DESC
             LIMIT ? OFFSET ?
