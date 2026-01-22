@@ -15,6 +15,10 @@ def create_app():
         DATABASE=os.path.join(app.instance_path, "social_listener.db"),
     )
 
+    from .config import load_env_config
+
+    app.config.update(load_env_config())
+
     os.makedirs(app.instance_path, exist_ok=True)
     from .repo.migrate import init_db_if_missing
 

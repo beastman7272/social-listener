@@ -30,6 +30,23 @@ def list_flagged_threads(limit=50, offset=0):
         conn.close()
 
 
+def list_recent_threads(limit=50):
+    conn = connect()
+    try:
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM threads
+            ORDER BY COALESCE(last_content_at_utc, created_at_utc) DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return rows
+    finally:
+        conn.close()
+
+
 def get_thread_detail(thread_pk):
     conn = connect()
     try:

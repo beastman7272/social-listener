@@ -2,5 +2,18 @@
 
 {% block content %}
   <h1>All Threads</h1>
-  <p>Placeholder for thread list.</p>
+  {% if threads and threads|length > 0 %}
+    <ul>
+      {% for thread in threads %}
+        <li>
+          {{ thread.title or "(untitled)" }}
+          {% if thread.subreddit %}
+            — r/{{ thread.subreddit }}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No threads yet.</p>
+  {% endif %}
 {% endblock %}

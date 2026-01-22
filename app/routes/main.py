@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, render_template
 
 bp = Blueprint("main", __name__)
 
@@ -32,7 +32,10 @@ def queue_detail(thread_pk):
 
 @bp.route("/threads")
 def threads():
-    return render_template("threads.html")
+    from app.repo.threads import list_recent_threads
+
+    recent_threads = list_recent_threads()
+    return render_template("threads.html", threads=recent_threads)
 
 
 @bp.route("/config")
@@ -42,4 +45,7 @@ def config():
 
 @bp.route("/runs")
 def runs():
-    return render_template("runs.html")
+    from app.repo.runs import list_recent_runs
+
+    recent_runs = list_recent_runs()
+    return render_template("runs.html", runs=recent_runs)

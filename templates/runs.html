@@ -2,5 +2,15 @@
 
 {% block content %}
   <h1>Runs/Logs</h1>
-  <p>Placeholder for run history and logs.</p>
+  {% if runs and runs|length > 0 %}
+    <ul>
+      {% for run in runs %}
+        <li>
+          {{ run.run_id }} — {{ run.status }}{% if run.started_at_utc %} — {{ run.started_at_utc }}{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No runs yet.</p>
+  {% endif %}
 {% endblock %}
