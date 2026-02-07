@@ -145,6 +145,8 @@ No auto-posting or automated user interaction
 OpenAI calls are optional and policy-gated
 Store only what you ingest locally (SQLite)
 
+Responsible Builder Compliance: Includes a dedicated cleanup script (scripts/compliance_cleanup.py) that uses PRAW to verify content status. It hard-deletes any local SQLite records (posts/comments) within 48 hours if they are removed from Reddit, satisfying the platform’s data retention policy.
+
 License
 
 Add your preferred license (MIT/Apache-2.0/etc.). If unsure, MIT is common for small tooling repos.
